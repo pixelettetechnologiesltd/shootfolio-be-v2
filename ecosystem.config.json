@@ -1,0 +1,15 @@
+{
+  "apps": [
+    {
+      "name": "ts-app",
+      "script": "src/server/index.ts",
+      "instances": 1,
+      "autorestart": true,
+      "watch": false,
+      "time": true,
+      "env": {
+        "NODE_ENV": "pod"
+      }
+    }
+  ]
+}
