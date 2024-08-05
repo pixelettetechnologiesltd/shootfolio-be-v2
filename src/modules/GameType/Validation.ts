@@ -1,6 +1,6 @@
-import Joi from "joi";
-import { objectId } from "../../common/customeValidation";
-import { GameTypeStatus } from "./entity/interface";
+import Joi from 'joi';
+import { objectId } from '../../common/customeValidation';
+import { GameTypeStatus } from './entity/interface';
 
 class Validation {
   constructor() {}
@@ -41,7 +41,7 @@ class Validation {
         .max(1),
 
       body: Joi.object().keys({
-        iconUrl: Joi.string().valid(null, "").allow().optional(),
+        iconUrl: Joi.string().valid(null, '').allow().optional(),
         gameTitle: Joi.string(),
         status: Joi.string().valid(...Object.keys(GameTypeStatus)),
       }),

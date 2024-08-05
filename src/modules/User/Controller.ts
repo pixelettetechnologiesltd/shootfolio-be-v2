@@ -216,6 +216,11 @@ class UserController {
     const user = await userService.updateSubscription(id, subscriptionId);
     res.status(200).json({ user, message: 'subscription update successfully' });
   }
+
+  public async getUserStatistics(req: Request, res: Response) {
+    const result = await userService.getUserStatistics();
+    res.status(200).send(result);
+  }
 }
 
 export default new UserController();

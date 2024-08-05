@@ -1,41 +1,39 @@
-import mongoose from "mongoose";
-import paginate from "../../../common/plugins/paginate";
+import mongoose from 'mongoose';
+import paginate from '../../../common/plugins/paginate';
 import {
   GameAttrs,
   GameDoc,
   GameModel,
   GameStatus,
   PlayerRoles,
-} from "./interface";
-import { number } from "joi";
-import User from "../../User/entity/User.model";
+} from './interface';
+import { number } from 'joi';
+import User from '../../User/entity/User.model';
 
 const Schema = new mongoose.Schema(
   {
     rival: {
       type: Object,
-      required: true,
     },
     challenger: {
       type: mongoose.Types.ObjectId,
-      ref: "User",
+      ref: 'User',
     },
     rivalClub: {
       type: mongoose.Types.ObjectId,
       Object,
-      ref: "GameClub",
-      required: true,
+      ref: 'GameClub',
     },
     challengerClub: {
       type: mongoose.Types.ObjectId,
       Object,
-      ref: "GameClub",
+      ref: 'GameClub',
     },
     rivalProtfolios: [
       {
         portfolio: {
           type: mongoose.Types.ObjectId,
-          ref: "Portfolio",
+          ref: 'Portfolio',
         },
         quantity: {
           type: Number,
@@ -43,7 +41,7 @@ const Schema = new mongoose.Schema(
         },
         user: {
           type: mongoose.Types.ObjectId,
-          ref: "User",
+          ref: 'User',
           default: null,
         },
         balance: {
@@ -59,6 +57,10 @@ const Schema = new mongoose.Schema(
           default: false,
         },
         borrowAmount: {
+          type: Number,
+          default: 0,
+        },
+        returnAmount: {
           type: Number,
           default: 0,
         },
@@ -68,7 +70,7 @@ const Schema = new mongoose.Schema(
       {
         portfolio: {
           type: mongoose.Types.ObjectId,
-          ref: "Portfolio",
+          ref: 'Portfolio',
         },
         quantity: {
           type: Number,
@@ -76,7 +78,7 @@ const Schema = new mongoose.Schema(
         },
         user: {
           type: mongoose.Types.ObjectId,
-          ref: "User",
+          ref: 'User',
           default: null,
         },
         balance: {
@@ -92,6 +94,10 @@ const Schema = new mongoose.Schema(
           default: false,
         },
         borrowAmount: {
+          type: Number,
+          default: 0,
+        },
+        returnAmount: {
           type: Number,
           default: 0,
         },
@@ -105,14 +111,22 @@ const Schema = new mongoose.Schema(
       type: Number,
       default: 0,
     },
+    rivalPrevTeamBalance: {
+      type: Number,
+      default: 0,
+    },
+    challengerPrevTeamBalance: {
+      type: Number,
+      default: 0,
+    },
     gameMode: {
       type: mongoose.Types.ObjectId,
-      ref: "GameMode",
+      ref: 'GameMode',
       required: true,
     },
     leauge: {
       type: mongoose.Types.ObjectId,
-      ref: "GameLeague",
+      ref: 'GameLeague',
       required: true,
     },
     status: {
@@ -130,15 +144,23 @@ const Schema = new mongoose.Schema(
     },
     winner: {
       type: mongoose.Types.ObjectId,
-      ref: "User",
+      ref: 'User',
     },
     type: {
       type: String,
-      enum: ["days", "minutes"],
+      enum: ['days', 'minutes'],
     },
     remainingCamparisons: {
       type: Number,
       default: 0,
+    },
+    isRivalQuiz: {
+      type: Boolean,
+      default: false,
+    },
+    isChallengerQuiz: {
+      type: Boolean,
+      default: false,
     },
   },
   {
@@ -159,20 +181,20 @@ Schema.statics.build = (attrs: GameAttrs) => {
   return new GameType(attrs);
 };
 
-Schema.pre(["find", "findOne"], async function (done) {
-  this.populate("challenger")
-    .populate("rivalClub")
-    .populate("challengerClub")
-    .populate("rivalProtfolios.portfolio")
-    .populate("rivalProtfolios.user")
-    .populate("challengerProtfolios.portfolio")
-    .populate("challengerProtfolios.user")
-    .populate("gameMode")
-    .populate("winner")
-    .populate("leauge");
+Schema.pre(['find', 'findOne'], async function (done) {
+  this.populate('challenger')
+    .populate('rivalClub')
+    .populate('challengerClub')
+    .populate('rivalProtfolios.portfolio')
+    .populate('rivalProtfolios.user')
+    .populate('challengerProtfolios.portfolio')
+    .populate('challengerProtfolios.user')
+    .populate('gameMode')
+    .populate('winner')
+    .populate('leauge');
   done();
 });
 
-const GameType = mongoose.model<GameDoc, GameModel>("Games", Schema);
+const GameType = mongoose.model<GameDoc, GameModel>('Games', Schema);
 
 export default GameType;

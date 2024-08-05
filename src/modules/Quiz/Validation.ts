@@ -31,6 +31,42 @@ class Validation {
       }),
     };
   }
+
+  public get() {
+    return {
+      params: Joi.object()
+        .keys({
+          id: Joi.string().custom(objectId).required(),
+        })
+        .min(1)
+        .max(1),
+    };
+  }
+  public update() {
+    return {
+      params: Joi.object()
+        .keys({
+          id: Joi.string().custom(objectId).required(),
+        })
+        .min(1)
+        .max(1),
+      body: Joi.object().keys({
+        question: Joi.string().required(),
+        options: Joi.array().required(),
+        correctOption: Joi.number().required(),
+      }),
+    };
+  }
+  public delete() {
+    return {
+      params: Joi.object()
+        .keys({
+          id: Joi.string().custom(objectId).required(),
+        })
+        .min(1)
+        .max(1),
+    };
+  }
 }
 
 export default new Validation();

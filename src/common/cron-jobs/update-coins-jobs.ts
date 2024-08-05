@@ -8,7 +8,7 @@ export const updateCoins = async function () {
   // fetch coins API
   const data = await axios
     .get(
-      `${config.crypto.latestUrl}?cryptocurrency_type=coins&sort=date_added&sort_dir=asc&limit=200`,
+      `${config.crypto.latestUrl}?cryptocurrency_type=all&sort=market_cap&start=1&limit=200`,
       {
         headers: {
           "X-CMC_PRO_API_KEY": config.crypto.key,

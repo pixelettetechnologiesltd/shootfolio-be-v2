@@ -34,7 +34,7 @@ class Validation {
           gameModeId: Joi.string().custom(objectId).allow(null, '').optional(),
           status: Joi.boolean().allow().optional(),
         })
-        .max(2),
+        .max(3),
     };
   }
 

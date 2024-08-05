@@ -11,6 +11,9 @@ import Game from "../entity/model";
 import { realTimePlayerToPlayerGameScheduler } from "../../../bull/RealP2p";
 import User from "../../User/entity/User.model";
 import Admin from "../../Admin/entity/Admin.model";
+import GameMode from "../../GameModes/entity/model";
+import { scheduleGameOver } from "./utils/scheduleGameOver";
+import { scheduleGameComparison } from "./utils/comparisonProcessor";
 
 export const realPlayerToPlayerGame = async (
   body: GameAttrs,
@@ -95,6 +98,14 @@ export const realPlayerToPlayerGame = async (
       game.rival = populateRival;
     }
     await Game.populate(game, { path: "challenger" });
+    // const Gamemode = await GameMode.findById(game.gameMode);
+    // if (Gamemode) {
+    //   const duration = 90 * 60 * 1000;
+    //   await scheduleGameOver(game._id, duration);
+    //   await scheduleGameComparison(game._id, Gamemode.duration);
+    // }
+
+    //S221
     realTimePlayerToPlayerGameScheduler(game.id);
     return await game.save();
   } else {

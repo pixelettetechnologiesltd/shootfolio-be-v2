@@ -1,13 +1,13 @@
-import mongoose from "mongoose";
-import paginate from "../../../common/plugins/paginate";
-import config from "../../../config/config";
-import { GameClubAttrs, GameClubDoc, GameClubModel } from "./interface";
+import mongoose from 'mongoose';
+import paginate from '../../../common/plugins/paginate';
+import config from '../../../config/config';
+import { GameClubAttrs, GameClubDoc, GameClubModel } from './interface';
 
 const Schema = new mongoose.Schema(
   {
     gameTypeId: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "GameType",
+      ref: 'GameType',
       required: true,
     },
     title: {
@@ -43,14 +43,14 @@ const Schema = new mongoose.Schema(
     timestamps: true,
   }
 );
-Schema.set("toJSON", {
+Schema.set('toJSON', {
   transform(doc, ret) {
     ret.id = ret._id;
     delete ret._id;
     delete ret.__v;
     delete ret.updatedAt;
 
-    if (ret.logo && !ret.logo.startsWith(config.rootPath)) {
+    if (ret.logo && !ret.logo.startsWith(config.digitalOcean.url)) {
       ret.logo = config.rootPath + ret.logo;
     }
   },
@@ -60,14 +60,14 @@ Schema.plugin(paginate);
 Schema.statics.build = (attrs: GameClubAttrs) => {
   return new GameClub(attrs);
 };
-Schema.pre(["find", "findOne"], async function (done) {
-  this.populate("gameTypeId");
+Schema.pre(['find', 'findOne'], async function (done) {
+  this.populate('gameTypeId');
   done();
 });
 
 // Schema.pre("save",async (done) => {
 //   if(this.findOne({symbol}))
 // })
-const GameClub = mongoose.model<GameClubDoc, GameClubModel>("GameClub", Schema);
+const GameClub = mongoose.model<GameClubDoc, GameClubModel>('GameClub', Schema);
 
 export default GameClub;

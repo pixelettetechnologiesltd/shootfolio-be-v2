@@ -1,8 +1,8 @@
-import { Request, Response } from "express";
-import subscriptionService from "./Service";
-import { Pick } from "../../utils/pick";
-import mongoose from "mongoose";
-import { BadRequestError } from "../../errors/badRequest.error";
+import { Request, Response } from 'express';
+import subscriptionService from './Service';
+import { Pick } from '../../utils/pick';
+import mongoose from 'mongoose';
+import { BadRequestError } from '../../errors/badRequest.error';
 
 class SubscriptionController {
   constructor() {}
@@ -38,7 +38,7 @@ class SubscriptionController {
    * @param res
    */
   public async upgradeSubscription(req: Request, res: Response) {
-    console.log("HHHHHHHHHHHHH");
+    console.log('HHHHHHHHHHHHH');
 
     const { subscriptionId } = req.body;
     const result = await subscriptionService.upgradeSubscription(
@@ -66,7 +66,7 @@ class SubscriptionController {
    */
   public async querySubscription(req: Request, res: Response) {
     const filter = Pick(req.query, []);
-    const options = Pick(req.query, ["page", "limit"]);
+    const options = Pick(req.query, ['page', 'limit']);
     const reuslt = await subscriptionService.querySubscription(filter, options);
     return res.status(200).send(reuslt);
   }
@@ -80,6 +80,17 @@ class SubscriptionController {
   public async getSubscription(req: Request, res: Response) {
     const { id } = req.params;
     const service = await subscriptionService.getSubscription(id);
+    return res.status(200).send(service);
+  }
+  /**
+   * 
+   * @param req 
+   * @param res 
+    @Route {Get Copoun By ID}
+   */
+  public async deleteSubscription(req: Request, res: Response) {
+    const { id } = req.params;
+    const service = await subscriptionService.deleteSubscription(id);
     return res.status(200).send(service);
   }
 

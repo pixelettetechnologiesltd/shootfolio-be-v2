@@ -1,15 +1,15 @@
-import express from "express";
-import subscriptionController from "./Controller";
-import { AsyncHandler } from "../../utils/AsyncHandler";
-import auth from "../../middlewares/auth";
-import { Validate } from "../../middlewares/validate";
-import subscriptionValidation from "./Validation";
+import express from 'express';
+import subscriptionController from './Controller';
+import { AsyncHandler } from '../../utils/AsyncHandler';
+import auth from '../../middlewares/auth';
+import { Validate } from '../../middlewares/validate';
+import subscriptionValidation from './Validation';
 const router = express.Router();
 
 router
-  .route("/")
+  .route('/')
   .post(
-    auth("manageSubscription"),
+    auth('manageSubscription'),
     Validate(subscriptionValidation.create()),
     AsyncHandler(subscriptionController.create)
   )
@@ -19,7 +19,7 @@ router
     AsyncHandler(subscriptionController.querySubscription)
   )
   .patch(
-    auth("manageSubscription"),
+    auth('manageSubscription'),
     Validate(subscriptionValidation.upgradeSubscription()),
     AsyncHandler(subscriptionController.upgradeSubscription)
   )
@@ -30,39 +30,44 @@ router
   );
 
 router.post(
-  "/subscribe",
-  auth("subscribe"),
+  '/subscribe',
+  auth('subscribe'),
   Validate(subscriptionValidation.subscribe()),
   AsyncHandler(subscriptionController.subscribe)
 );
 router.post(
-  "/upgrade",
-  auth("subscribe"),
+  '/upgrade',
+  auth('subscribe'),
   Validate(subscriptionValidation.upgradeSubscription()),
   AsyncHandler(subscriptionController.upgradeSubscription)
 );
 
 router.post(
-  "/cancel",
-  auth("subscribe"),
+  '/cancel',
+  auth('subscribe'),
   // Validate(subscriptionValidation.upgradeSubscription()),
   AsyncHandler(subscriptionController.cancelSubscription)
 );
 router
-  .route("/:id")
+  .route('/:id')
   .get(
     auth(),
     Validate(subscriptionValidation.getSubscription()),
     AsyncHandler(subscriptionController.getSubscription)
   )
   .patch(
-    auth("manageSubscription"),
+    auth('manageSubscription'),
     Validate(subscriptionValidation.update()),
     AsyncHandler(subscriptionController.updateSubscription)
+  )
+  .delete(
+    auth(),
+    Validate(subscriptionValidation.getSubscription()),
+    AsyncHandler(subscriptionController.deleteSubscription)
   );
 
 router.post(
-  "/webhook",
+  '/webhook',
   AsyncHandler(subscriptionController.handleFailedPayments)
 );
 

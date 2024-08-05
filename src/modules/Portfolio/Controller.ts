@@ -1,6 +1,6 @@
-import { Request, Response } from "express";
-import Service from "./Service";
-import { Pick } from "../../utils/pick";
+import { Request, Response } from 'express';
+import Service from './Service';
+import { Pick } from '../../utils/pick';
 
 class Controller {
   constructor() {}
@@ -13,6 +13,8 @@ class Controller {
    */
   public async create(req: Request, res: Response) {
     const { body } = req;
+    console.log('body====', body);
+
     res.status(201).send(await Service.create(body));
   }
 
@@ -23,8 +25,8 @@ class Controller {
     @Route {Query Portfolio}
    */
   public async query(req: Request, res: Response) {
-    const filter = Pick(req.query, ["admin", "club"]);
-    const options = Pick(req.query, ["page", "limit"]);
+    const filter = Pick(req.query, ['admin', 'club']);
+    const options = Pick(req.query, ['page', 'limit']);
     const reuslt = await Service.query(filter, options);
     return res.status(200).send(reuslt);
   }

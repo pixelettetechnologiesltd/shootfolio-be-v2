@@ -17,12 +17,21 @@ export const shoot = async function (
     rivalBalance +=
       game.rivalProtfolios[i].portfolio.coin.quote.USD.price *
       game.rivalProtfolios[i].quantity;
+      rivalBalance += game.rivalProtfolios[i].balance;
+
+      rivalBalance -= game.rivalProtfolios[i].borrowAmount;
+      rivalBalance += game.rivalProtfolios[i].returnAmount;
   }
   for (let i = 0; i < game.challengerProtfolios.length; i++) {
     challengerBalance +=
       game.challengerProtfolios[i].portfolio.coin.quote.USD.price *
       game.challengerProtfolios[i].quantity;
+      challengerBalance += game.challengerProtfolios[i].balance;
+
+      challengerBalance -= game.challengerProtfolios[i].borrowAmount;
+      challengerBalance += game.challengerProtfolios[i].returnAmount;
   }
+
   if (body.player === "rival") {
     const possesser = game.rivalProtfolios.findIndex(
       (e) => e.user?.id.toString() === user.id.toString() && e.ball == true
@@ -36,30 +45,37 @@ export const shoot = async function (
     }
 
     if (rivalBalance < challengerBalance) {
-      throw new BadRequestError("Can't shoot, weak profile!");
+      throw new BadRequestError("Can't shoot a ball, Oponent tean has a strong porfolio!");
     }
 
     const goalKeeper = game.challengerProtfolios.findIndex(
       (e) => e.role === PlayerRoles.GK
     );
     const goalKeeperBalance =
-      game.challengerProtfolios[goalKeeper].portfolio.coin.quote.USD.price *
-      game.challengerProtfolios[goalKeeper].quantity;
+      (game.challengerProtfolios[goalKeeper].portfolio.coin.quote.USD.price *
+      game.challengerProtfolios[goalKeeper].quantity) + game.challengerProtfolios[goalKeeper].balance + game.challengerProtfolios[goalKeeper].returnAmount; - game.challengerProtfolios[goalKeeper].borrowAmount;
 
     const attackerBalance =
-      game.rivalProtfolios[possesser].portfolio.coin.quote.USD.price *
-      game.rivalProtfolios[possesser].quantity;
+      (game.rivalProtfolios[possesser].portfolio.coin.quote.USD.price *
+      game.rivalProtfolios[possesser].quantity) + game.rivalProtfolios[possesser].balance + game.rivalProtfolios[possesser].returnAmount; - game.rivalProtfolios[possesser].borrowAmount ;
     if (attackerBalance < goalKeeperBalance) {
-      throw new BadRequestError("Weak profile to shoot!");
+      throw new BadRequestError("Goal keeper has a strong porfolio!");
     }
+
+    const goalRivaLKeeper = game.rivalProtfolios.findIndex(
+      (e) => e.role === PlayerRoles.GK
+    );
+
     game.rivalProtfolios[possesser].ball = false;
-    game.challengerProtfolios[goalKeeper].ball = true;
-    game.rivalGoals += 1;
+    game.rivalProtfolios[goalRivaLKeeper].ball = true;
+
+    game.isRivalQuiz = false;
+    game.isChallengerQuiz = true;
     GameHistoryService.create({
       game: game.id,
       user: user.id,
       player: PlayerTeam.Rival,
-      text: `${user.name} has shoot the ball and secure a goal`,
+      text: `${user.name} has shot the ball`,
     });
   } else {
     const possesser = game.challengerProtfolios.findIndex(
@@ -73,31 +89,38 @@ export const shoot = async function (
       throw new BadRequestError("Goalkeeper can't shoot the ball");
     }
 
-    if (rivalBalance < challengerBalance) {
-      throw new BadRequestError("Can't shoot, weak profile!");
+    if (rivalBalance > challengerBalance) {
+      throw new BadRequestError("Can't shoot a ball, Oponent team has a strong porfolio!");
     }
 
     const goalKeeper = game.rivalProtfolios.findIndex(
       (e) => e.role === PlayerRoles.GK
     );
+    
     const goalKeeperBalance =
-      game.rivalProtfolios[goalKeeper].portfolio.coin.quote.USD.price *
-      game.rivalProtfolios[goalKeeper].quantity;
+      (game.rivalProtfolios[goalKeeper].portfolio.coin.quote.USD.price *
+      game.rivalProtfolios[goalKeeper].quantity) + game.rivalProtfolios[goalKeeper].balance + game.rivalProtfolios[goalKeeper].returnAmount; - game.rivalProtfolios[goalKeeper].borrowAmount;;
 
     const attackerBalance =
-      game.challengerProtfolios[possesser].portfolio.coin.quote.USD.price *
-      game.challengerProtfolios[goalKeeper].quantity;
+      (game.challengerProtfolios[possesser].portfolio.coin.quote.USD.price *
+      game.challengerProtfolios[goalKeeper].quantity) + game.challengerProtfolios[possesser].balance + game.challengerProtfolios[possesser].returnAmount; - game.challengerProtfolios[possesser].borrowAmount ;;
     if (attackerBalance < goalKeeperBalance) {
-      throw new BadRequestError("Weak profile to shoot!");
+      throw new BadRequestError("Goal keeper has a strong porfolio!");
     }
+
+    const goalChalKeeper = game.challengerProtfolios.findIndex(
+      (e) => e.role === PlayerRoles.GK
+    );
+
     game.challengerProtfolios[possesser].ball = false;
-    game.rivalProtfolios[goalKeeper].ball = true;
-    game.challengerGoals += 1;
+    game.challengerProtfolios[goalChalKeeper].ball = true;
+    game.isRivalQuiz = true;
+    game.isChallengerQuiz = false;
     GameHistoryService.create({
       game: game.id,
       user: user.id,
       player: PlayerTeam.Challenger,
-      text: `${user.name} has shoot the ball and secure a goal`,
+      text: `${user.name} has shot the ball`,
     });
   }
   return await game.save();

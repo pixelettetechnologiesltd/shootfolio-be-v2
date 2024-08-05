@@ -1,7 +1,7 @@
-import mongoose from "mongoose";
-import paginate from "../../../common/plugins/paginate";
-import { Password } from "../../../common/services/password";
-import { AdminAttrs, AdminDoc, AdminModel } from "./admin.interface";
+import mongoose from 'mongoose';
+import paginate from '../../../common/plugins/paginate';
+import { Password } from '../../../common/services/password';
+import { AdminAttrs, AdminDoc, AdminModel } from './admin.interface';
 
 const adminSchema = new mongoose.Schema(
   {
@@ -23,7 +23,7 @@ const adminSchema = new mongoose.Schema(
     },
     role: {
       type: String,
-      default: "Admin",
+      default: 'Admin',
     },
     rolePrivileges: {
       type: [String],
@@ -47,19 +47,21 @@ const adminSchema = new mongoose.Schema(
 );
 adminSchema.plugin(paginate);
 
-adminSchema.pre("save", async function (done) {
-  if (this.isModified("password")) {
-    const hashed = await Password.toHash(this.get("password"));
-    this.set("password", hashed);
+adminSchema.pre('save', async function (done) {
+  if (this.isModified('password')) {
+    const hashed = await Password.toHash(this.get('password'));
+    this.set('password', hashed);
   }
   this.rolePrivileges = [
-    "manageGameTypes",
-    "manageAdmins",
-    "manageUsers",
-    "manageGameLeauges",
-    "manageGameModes",
-    "manageGameClubs",
-    "manageSubscription",
+    'manageGameTypes',
+    'manageAdmins',
+    'manageUsers',
+    'manageGameLeauges',
+    'manageGameModes',
+    'manageGameClubs',
+    'manageSubscription',
+    'manageQuiz',
+    'manageCoins',
   ];
   done();
 });
@@ -73,6 +75,6 @@ adminSchema.statics.isEmailTaken = async function (email: string) {
   return !!admin;
 };
 
-const Admin = mongoose.model<AdminDoc, AdminModel>("Admin", adminSchema);
+const Admin = mongoose.model<AdminDoc, AdminModel>('Admin', adminSchema);
 
 export default Admin;

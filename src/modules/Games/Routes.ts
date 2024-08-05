@@ -1,19 +1,21 @@
-import express from "express";
-import Controller from "./Controller";
-import { AsyncHandler } from "../../utils/AsyncHandler";
-import auth from "../../middlewares/auth";
-import { Validate } from "../../middlewares/validate";
-import Validation from "./Validation";
-import { shoot } from "./api/shoot";
+import express from 'express';
+import Controller from './Controller';
+import { AsyncHandler } from '../../utils/AsyncHandler';
+import auth from '../../middlewares/auth';
+import { Validate } from '../../middlewares/validate';
+import Validation from './Validation';
+import { shoot } from './api/shoot';
 const router = express.Router();
 
 router
-  .route("/")
+  .route('/')
   .post(auth(), Validate(Validation.create()), AsyncHandler(Controller.create))
   .get(auth(), Validate(Validation.query()), AsyncHandler(Controller.query));
 
+router.get('/status', auth(), AsyncHandler(Controller.getGameStatus));
+
 router
-  .route("/:id")
+  .route('/:id')
   .get(auth(), Validate(Validation.get()), AsyncHandler(Controller.get))
   .patch(auth(), Validate(Validation.update()), AsyncHandler(Controller.update))
   .delete(
@@ -23,56 +25,79 @@ router
   );
 
 router.get(
-  "/user/history",
+  '/user/history',
   auth(),
   // Validate(Validation.query()),
   AsyncHandler(Controller.getHistory)
 );
 router.post(
-  "/sell",
+  '/sell',
   auth(),
   Validate(Validation.sell()),
   AsyncHandler(Controller.sell)
 );
 
 router.post(
-  "/buy",
+  '/buy',
   auth(),
   Validate(Validation.sell()),
   AsyncHandler(Controller.buy)
 );
 router.post(
-  "/change/coin",
+  '/change/coin',
   auth(),
   Validate(Validation.changeCoin()),
   AsyncHandler(Controller.changeCoin)
 );
 
 router.post(
-  "/borrow/money",
+  '/borrow/money',
   auth(),
   Validate(Validation.borrowMoney()),
   AsyncHandler(Controller.borrowMoney)
 );
 
+router.get(
+  '/borrowedmoney/:id',
+  auth(),
+  Validate(Validation.borrowedMoney()),
+  AsyncHandler(Controller.getborrowedMoney)
+);
+
+router.get(
+  '/remainingamount/:id',
+  auth(),
+  Validate(Validation.borrowedMoney()),
+  AsyncHandler(Controller.getRemainingAmount)
+);
+
 router.post(
-  "/pass/ball",
+  '/pass/ball',
   auth(),
   Validate(Validation.passBall()),
   AsyncHandler(Controller.passBall)
 );
 
 router.post(
-  "/tackle/opponent",
+  '/tackle/opponent',
   auth(),
   Validate(Validation.tackle()),
   AsyncHandler(Controller.tackle)
 );
 router.post(
-  "/shoot/opponent",
+  '/shoot/opponent',
   auth(),
   Validate(Validation.tackle()),
   AsyncHandler(Controller.shootBall)
+);
+
+router.post('/leave', auth(), AsyncHandler(Controller.leaveGame));
+
+router.post(
+  '/quiz/answer',
+  auth(),
+  Validate(Validation.quizAnswer),
+  AsyncHandler(Controller.quizAnswer)
 );
 
 export { router as gamesRoutes };

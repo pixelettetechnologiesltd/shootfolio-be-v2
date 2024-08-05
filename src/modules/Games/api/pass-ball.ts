@@ -36,7 +36,7 @@ export const passBall = async function (
       game: game.id,
       user: user.id,
       player: PlayerTeam.Rival,
-      text: `${user.name} has passess the ball to ${game.rivalProtfolios[passesToIndex].user?.name}`,
+      text: `${user.name} has passed the ball to ${game.rivalProtfolios[passesToIndex].user?.name}`,
     });
   } else {
     const passerIndex = game.challengerProtfolios.findIndex(
@@ -53,12 +53,13 @@ export const passBall = async function (
       throw new BadRequestError("You don't have the ball");
     }
     game.challengerProtfolios[passesToIndex].ball = true;
-    game.challengerProtfolios[passerIndex].ball = true;
+    game.challengerProtfolios[passerIndex].ball = false;
+
     GameHistoryService.create({
       game: game.id,
       user: user.id,
       player: PlayerTeam.Challenger,
-      text: `${user.name} has passess the ball to ${game.challengerProtfolios[passesToIndex].user?.name}`,
+      text: `${user.name} has passed the ball to ${game.challengerProtfolios[passesToIndex].user?.name}`,
     });
   }
   await game.save();

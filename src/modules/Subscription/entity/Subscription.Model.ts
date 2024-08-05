@@ -1,11 +1,11 @@
-import mongoose from "mongoose";
-import paginate from "../../../common/plugins/paginate";
+import mongoose from 'mongoose';
+import paginate from '../../../common/plugins/paginate';
 import {
   SubscriptionAttrs,
   SubscriptionDoc,
   SubscriptionModel,
   SubscriptionTypes,
-} from "./subscription.interface";
+} from './subscription.interface';
 
 const subscriptionSchema = new mongoose.Schema(
   {
@@ -20,15 +20,18 @@ const subscriptionSchema = new mongoose.Schema(
     name: {
       type: String,
       required: true,
-      enum: SubscriptionTypes,
     },
     leagues: {
       type: [mongoose.Types.ObjectId],
-      ref: "GameLeague",
+      ref: 'GameLeague',
     },
     amount: {
       type: Number,
       required: true,
+    },
+    status: {
+      type: Boolean,
+      default: true,
     },
   },
   {
@@ -48,12 +51,12 @@ subscriptionSchema.statics.isSubscriptionNameTaken = async function (name) {
   return !!doc;
 };
 
-subscriptionSchema.pre(["find", "findOne"], async function name(done) {
-  this.populate("leagues");
+subscriptionSchema.pre(['find', 'findOne'], async function name(done) {
+  this.populate('leagues');
   done();
 });
 const Subscription = mongoose.model<SubscriptionDoc, SubscriptionModel>(
-  "Subscription",
+  'Subscription',
   subscriptionSchema
 );
 

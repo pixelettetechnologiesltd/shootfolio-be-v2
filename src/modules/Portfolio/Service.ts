@@ -7,6 +7,9 @@ import Portfolio from "./entity/model";
 import { BadRequestError } from "../../errors/badRequest.error";
 import { Options, PaginationResult } from "../../common/interfaces";
 import CryptoService from "../CryptoCoins/Service";
+import { calculatePortfolio } from "../Games/lib/utils";
+import { GameModes } from "../Games/entity/interface";
+import Game from "../Games/entity/model";
 class Service {
   constructor() {}
 
@@ -70,6 +73,19 @@ class Service {
     updateBody: PortolioUpdateAttrs
   ): Promise<PortolioDoc> {
     const doc = await this.get(id);
+    console.log("doc====", doc);
+    // Assuming Portfolio has a club field
+    if (doc?.club) {
+      const games = await Game.find({
+        rivalClub: doc.club,
+        status: "Play",
+        gameMode: "64f067c7b0985e73b9ecd8dc", // Make sure GameModes.IDLEP2M is the correct way to reference the game mode
+      });
+      // games.forEach((game) => {
+      //   calculatePortfolio(game);
+      //   game.save();
+      // });
+    }
     Object.assign(doc, updateBody);
     await doc.save();
     return doc;

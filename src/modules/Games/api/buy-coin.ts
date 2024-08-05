@@ -1,7 +1,7 @@
 import { BadRequestError } from "../../../errors/badRequest.error";
 import { UserDoc } from "../../User/entity/user.interface";
 import { GameDoc, PortfolioSelect } from "../entity/interface";
-import { findPortfolio } from "../lib/utils";
+import { calculatePortfolio, findPortfolio } from "../lib/utils";
 import GameHistoryService from "../../GameHistory/Service";
 import { PlayerTeam } from "../../GameHistory/entity/interface";
 
@@ -16,6 +16,8 @@ class BuyCoin {
     user: UserDoc
   ) {
     if (body.player == "rival") {
+      console.log("A0989", body.portfolio);
+      console.log("A0989", body.player);
       const index = findPortfolio(
         game,
         body.portfolio,
@@ -35,15 +37,18 @@ class BuyCoin {
           "You don't have enough balance to buy more assets"
         );
       }
+      // calculatePortfolio(game);
       game.rivalProtfolios[index].balance -= cost;
       game.rivalProtfolios[index].quantity += body.quantity;
       GameHistoryService.create({
         game: game.id,
         user: user.id,
         player: PlayerTeam.Rival,
-        text: `${user.name} has bought ${body.quantity} ${game.rivalProtfolios[index].portfolio.coin.name} worth ${cost}`,
+        text: `${user.name} has bought ${body.quantity} ${game.rivalProtfolios[index].portfolio.coin.name} for a total of USD ${cost}`,
       });
     } else {
+      console.log("A0989", body.portfolio);
+      console.log("A0989", body.player);
       const index = findPortfolio(
         game,
         body.portfolio,
@@ -63,13 +68,15 @@ class BuyCoin {
           "You don't have enough balance to buy more assets"
         );
       }
+      // calculatePortfolio(game);
+      console.log("A0989", cost);
       game.challengerProtfolios[index].balance -= cost;
       game.challengerProtfolios[index].quantity += body.quantity;
       GameHistoryService.create({
         game: game.id,
         user: user.id,
         player: PlayerTeam.Challenger,
-        text: `${user.name} has bought ${body.quantity} ${game.challengerProtfolios[index].portfolio.coin.name} worth ${cost}`,
+        text: `${user.name} has bought ${body.quantity} ${game.challengerProtfolios[index].portfolio.coin.name} for a total of USD ${cost}`,
       });
     }
     await game.save();
@@ -93,14 +100,14 @@ class BuyCoin {
         "You don't have enough balance to buy more assets"
       );
     }
-
+    // calculatePortfolio(game);
     game.challengerProtfolios[index].quantity += body.quantity;
     game.challengerBalance -= cost;
     GameHistoryService.create({
       game: game.id,
       user: user.id,
       player: PlayerTeam.Challenger,
-      text: `${user.name} has bought ${body.quantity} ${game.challengerProtfolios[index].portfolio.coin.name} worth ${cost}`,
+      text: `${user.name} has bought ${body.quantity} ${game.challengerProtfolios[index].portfolio.coin.name} for a total of USD ${cost}`,
     });
     await game.save();
   }
@@ -110,7 +117,7 @@ class BuyCoin {
     body: { portfolio: string; quantity: number },
     user: UserDoc
   ) {
-    if (game.challenger.id.toString() === user.id.toString()) {
+    if (game.challenger?.id.toString() === user.id.toString()) {
       const index = findPortfolio(
         game,
         body.portfolio,
@@ -121,16 +128,17 @@ class BuyCoin {
         game.challengerProtfolios[index].portfolio.coin.quote.USD.price;
       if (cost > game.challengerBalance) {
         throw new BadRequestError(
-          "You don't have enough balance to buy more assets"
+          "A012: You don't have enough balance to buy more assets"
         );
       }
+      // calculatePortfolio(game);
       game.challengerProtfolios[index].quantity += body.quantity;
       game.challengerBalance -= cost;
       GameHistoryService.create({
         game: game.id,
         user: user.id,
         player: PlayerTeam.Challenger,
-        text: `${user.name} has bought ${body.quantity} ${game.challengerProtfolios[index].portfolio.coin.name} worth ${cost}`,
+        text: `${user.name} has bought ${body.quantity} ${game.challengerProtfolios[index].portfolio.coin.name} for a total of USD ${cost}`,
       });
     } else {
       const index = findPortfolio(
@@ -141,18 +149,19 @@ class BuyCoin {
       let cost =
         body.quantity *
         game.rivalProtfolios[index].portfolio.coin.quote.USD.price;
-      if (cost > game.challengerBalance) {
+      if (cost > game.rivalBalance) {
         throw new BadRequestError(
-          "You don't have enough balance to buy more assets"
+          "A013: You don't have enough balance to buy more assets"
         );
       }
+      // calculatePortfolio(game);
       game.rivalProtfolios[index].quantity += body.quantity;
       game.rivalBalance -= cost;
       GameHistoryService.create({
         game: game.id,
         user: user.id,
         player: PlayerTeam.Rival,
-        text: `${user.name} has bought ${body.quantity} ${game.rivalProtfolios[index].portfolio.coin.name} worth ${cost}`,
+        text: `${user.name} has bought ${body.quantity} ${game.rivalProtfolios[index].portfolio.coin.name} for a total of USD ${cost}`,
       });
     }
 

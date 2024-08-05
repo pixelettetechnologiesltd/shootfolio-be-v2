@@ -8,9 +8,7 @@ class SubscriptionValidation {
   public create() {
     return {
       body: Joi.object().keys({
-        name: Joi.string()
-          .valid(...Object.values(SubscriptionTypes))
-          .required(),
+        name: Joi.string().required(),
         leagues: Joi.array().items(Joi.string().custom(objectId)),
         amount: Joi.number().required(),
       }),
@@ -54,6 +52,7 @@ class SubscriptionValidation {
         name: Joi.string(),
         leagues: Joi.array().items(Joi.string().custom(objectId)),
         amount: Joi.number(),
+        status: Joi.boolean(),
       }),
     };
   }

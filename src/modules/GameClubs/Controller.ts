@@ -1,7 +1,8 @@
-import { Request, Response } from "express";
-import Service from "./Service";
-import { Pick } from "../../utils/pick";
-import { BadRequestError } from "../../errors/badRequest.error";
+import { Request, Response } from 'express';
+import Service from './Service';
+import { Pick } from '../../utils/pick';
+import { BadRequestError } from '../../errors/badRequest.error';
+import config from '../../config/config';
 
 class Controller {
   constructor() {}
@@ -15,7 +16,7 @@ class Controller {
   public async create(req: Request, res: Response) {
     const { body } = req;
     if (!req.file) {
-      throw new BadRequestError("Logo is required");
+      throw new BadRequestError('Logo is required');
     }
     body.logo = req.file.filename;
     res.status(201).send(await Service.create(body));
@@ -28,8 +29,8 @@ class Controller {
     @Route {Query GameClubs}
    */
   public async query(req: Request, res: Response) {
-    const filter = Pick(req.query, ["gameTypeId", "status"]);
-    const options = Pick(req.query, ["page", "limit"]);
+    const filter = Pick(req.query, ['gameTypeId', 'status']);
+    const options = Pick(req.query, ['page', 'limit']);
     // options.populate = "gameTypeId";
     const reuslt = await Service.query(filter, options);
     return res.status(200).send(reuslt);
@@ -42,7 +43,7 @@ class Controller {
    */
   public async getCompeteCLubs(req: Request, res: Response) {
     // const filter = Pick(req.query, ["gameTypeId", "status"]);
-    const options = Pick(req.query, ["page", "limit"]);
+    const options = Pick(req.query, ['page', 'limit']);
     // options.populate = "gameTypeId";
     const reuslt = await Service.getCompeteClubs(options);
     return res.status(200).send(reuslt);
@@ -70,7 +71,7 @@ class Controller {
     const { id } = req.params;
     const { body } = req;
     if (req.file) {
-      body.logo = req.file.filename;
+      body.logo = `${config.digitalOcean.url}/${req.file.originalname}`;
     }
     const doc = await Service.update(id, body);
     return res.status(200).send(doc);

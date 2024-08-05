@@ -35,28 +35,31 @@ class Controller {
       "challengerClub",
       "gameMode",
       "challenger",
+      "leauge",
     ]);
     const options = Pick(req.query, ["page", "limit"]);
     const reuslt = await Service.query(filter, options);
 
-    for (let i = 0; i < reuslt.results.length; i++) {
-      // @ts-ignore
-      if (reuslt.results[i].rival) {
-        let user;
-        // @ts-ignore
-        user = await User.findById(reuslt.results[i].rival);
+    // for (let i = 0; i < reuslt.results.length; i++) {
+    //   // @ts-ignore
+    //   if (reuslt.results[i].rival) {
+    //     let user;
+    //     // @ts-ignore
+    //     user = await User.findById(reuslt.results[i].rival);
 
-        if (user) {
-          // @ts-ignore
-          reuslt.results[i].rival = user;
-        } else {
-          // @ts-ignore
-          user = await Admin.findById(reuslt.results[i].rival);
-          // @ts-ignore
-          reuslt.results[i].rival = user;
-        }
-      }
-    }
+    //     if (user) {
+    //       // @ts-ignore
+    //       reuslt.results[i].rival = user;
+    //     } else {
+    //       // @ts-ignore
+    //       user = await Admin.findById(reuslt.results[i].rival);
+    //       // @ts-ignore
+    //       reuslt.results[i].rival = user;
+    //     }
+    //   }
+    // }
+    console.log("result", reuslt);
+
     return res.status(200).send(reuslt);
   }
 
@@ -75,14 +78,22 @@ class Controller {
       $or: [
         { rival: new mongoose.Types.ObjectId(id) },
         { challenger: new mongoose.Types.ObjectId(id) },
-        { "rivalProtfolios.user": new mongoose.Types.ObjectId(id) },
+        {
+          rivalProtfolios: {
+            $elemMatch: { user: new mongoose.Types.ObjectId(id) },
+          },
+        },
+        {
+          challengerProtfolios: {
+            $elemMatch: { user: new mongoose.Types.ObjectId(id) },
+          },
+        },
         { "challengerClub.user": new mongoose.Types.ObjectId(id) },
         { "rival._id": new mongoose.Types.ObjectId(id) },
       ],
     };
     const options = Pick(req.query, ["page", "limit"]);
     const reuslt = await Service.query(filter, options);
-
     for (let i = 0; i < reuslt.results.length; i++) {
       // @ts-ignore
       if (reuslt.results[i].rival) {
@@ -251,12 +262,62 @@ class Controller {
     @Route {Change coin}
    */
   public async borrowMoney(req: Request, res: Response) {
-    console.log("HEEEEEEEEEEEEEEEEEEEEEEEEEEE");
-
     const { body } = req;
     const { user } = req;
     // @ts-ignore
     const response = await Service.borrowMoney(body.id, body, user);
+    return res.status(200).send(response);
+  }
+  /**
+   * 
+   * @param req 
+   * @param res 
+    @Route {Change coin}
+   */
+  public async getborrowedMoney(req: Request, res: Response) {
+    const { id } = req.params;
+    const { user } = req;
+    const { portfolio, player } = req.query;
+    const body = { portfolio, player };
+    // @ts-ignore
+    const response = await Service.getBorrowedMoney(id, user, body);
+    return res.status(200).json({ BorrowedAmount: response });
+  }
+  /**
+   * 
+   * @param req 
+   * @param res 
+    @Route {Change coin}
+   */
+  public async getRemainingAmount(req: Request, res: Response) {
+    const { id } = req.params;
+    const { user } = req;
+    const { portfolio, player } = req.query;
+    const body = { portfolio, player };
+    // @ts-ignore
+    const response = await Service.getRemainingAmount(id, user, body);
+    return res.status(200).json({ RemainingAmount: response });
+  }
+
+  public async getGameStatus(req: Request, res: Response) {
+    const { club, leauge } = req.query;
+    // @ts-ignore
+    const response = await Service.getGameStatus(club, leauge);
+    return res.status(200).send(response);
+  }
+
+  public async leaveGame(req: Request, res: Response) {
+    // const { gameId } = req.params;
+    const { gameId, player } = req.body;
+    const { user } = req;
+    // @ts-ignore
+    const response = await Service.leaveGame(gameId, player, user._id);
+    return res.status(200).send(response);
+  }
+
+  public async quizAnswer(req: Request, res: Response) {
+    const { body } = req;
+    const response = await Service.quizAnswer(body);
     return res.status(200).send(response);
   }
 }

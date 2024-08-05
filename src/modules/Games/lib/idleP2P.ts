@@ -1,16 +1,19 @@
-import mongoose from "mongoose";
-import { BadRequestError } from "../../../errors/badRequest.error";
-import CryptoCoins from "../../CryptoCoins/entity/model";
-import GameLeague from "../../GameLeagues/entity/model";
-import { GameModeDoc } from "../../GameModes/entity/interface";
-import { UserDoc } from "../../User/entity/user.interface";
-import { GameAttrs, GameStatus } from "../entity/interface";
-import PortfolioService from "../../Portfolio/Service";
-import { PlayerType } from "../../Portfolio/entity/interface";
-import Game from "../entity/model";
-import { idlePlayerToPlayerGameScheduler } from "../../../bull/idleP2p";
-import User from "../../User/entity/User.model";
-import Admin from "../../Admin/entity/Admin.model";
+import mongoose from 'mongoose';
+import { BadRequestError } from '../../../errors/badRequest.error';
+import CryptoCoins from '../../CryptoCoins/entity/model';
+import GameLeague from '../../GameLeagues/entity/model';
+import { GameModeDoc } from '../../GameModes/entity/interface';
+import { UserDoc } from '../../User/entity/user.interface';
+import { GameAttrs, GameStatus } from '../entity/interface';
+import PortfolioService from '../../Portfolio/Service';
+import { PlayerType } from '../../Portfolio/entity/interface';
+import Game from '../entity/model';
+import { idlePlayerToPlayerGameScheduler } from '../../../bull/idleP2p';
+import User from '../../User/entity/User.model';
+import Admin from '../../Admin/entity/Admin.model';
+import GameMode from '../../GameModes/entity/model';
+import { scheduleGameOver } from './utils/scheduleGameOver';
+import { scheduleGameComparison } from './utils/comparisonProcessor';
 
 export const idlePlayerToPlayerGame = async (
   body: GameAttrs,
@@ -21,7 +24,7 @@ export const idlePlayerToPlayerGame = async (
   for (let i = 0; i < body.portfolios.length; i++) {
     if (body.portfolios[i].toString() in obj) {
       throw new BadRequestError(
-        "Duplicate assets, please use different assets"
+        'Duplicate assets, please use different assets'
       );
     }
   }
@@ -30,28 +33,28 @@ export const idlePlayerToPlayerGame = async (
     // game exists
     const game = await Game.findById(body.gameId);
     if (!game) {
-      throw new BadRequestError("No game found!");
+      throw new BadRequestError('No game found!');
     }
     // @ts-ignore
     if (game.rivalClub.toString() === body.challengerClub) {
-      throw new BadRequestError("You can not compete with same club!");
+      throw new BadRequestError('You can not compete with same club!');
     }
 
     let totalBalance = 0;
     for (let i = 0; i < body.portfolios.length; i++) {
       const coin = await CryptoCoins.findById(body.portfolios[i].portfolio);
       if (!coin) {
-        throw new BadRequestError("Asset not found");
+        throw new BadRequestError('Asset not found');
       }
       totalBalance += body.portfolios[i].quantity * coin.quote.USD.price;
     }
     const leauge = await GameLeague.findById(body.leauge);
     if (!leauge) {
-      throw new BadRequestError("Leauge not found");
+      throw new BadRequestError('Leauge not found');
     }
 
     if (totalBalance > leauge.investableBudget) {
-      throw new BadRequestError("Your balance is not enough");
+      throw new BadRequestError('Your balance is not enough');
     }
 
     // create portfolios
@@ -84,10 +87,11 @@ export const idlePlayerToPlayerGame = async (
     // @ts-ignore
     game.challengerClub = body.challengerClub;
     game.status = GameStatus.Play;
+    //S221
     idlePlayerToPlayerGameScheduler(game.id);
-    await Game.populate(game, { path: "challengerProtfolios.portfolio" });
+    await Game.populate(game, { path: 'challengerProtfolios.portfolio' });
     // await Game.populate(game, { path: "rival" });
-    await Game.populate(game, { path: "challenger" });
+    await Game.populate(game, { path: 'challenger' });
     let populateRival;
     populateRival = await User.findById(game.rival);
     if (populateRival) {
@@ -98,23 +102,34 @@ export const idlePlayerToPlayerGame = async (
       // @ts-ignore
       game.rival = populateRival;
     }
+    const Gamemode = await GameMode.findById(game.gameMode);
+    console.log('gameMode===', Gamemode);
+
+    //S221
+    if (Gamemode) {
+      console.log('gameMode===inside if', Gamemode);
+      const duration = 7 * 24 * 60 * 60 * 1000;
+      await scheduleGameOver(game._id, duration);
+      await scheduleGameComparison(game._id, Gamemode.duration);
+    }
+
     return await game.save();
   } else {
     let totalBalance = 0;
     for (let i = 0; i < body.portfolios.length; i++) {
       const coin = await CryptoCoins.findById(body.portfolios[i].portfolio);
       if (!coin) {
-        throw new BadRequestError("Asset not found");
+        throw new BadRequestError('Asset not found');
       }
       totalBalance += body.portfolios[i].quantity * coin.quote.USD.price;
     }
     const leauge = await GameLeague.findById(body.leauge);
     if (!leauge) {
-      throw new BadRequestError("Leauge not found");
+      throw new BadRequestError('Leauge not found');
     }
 
     if (totalBalance > leauge.investableBudget) {
-      throw new BadRequestError("Your balance is not enough");
+      throw new BadRequestError('Your balance is not enough');
     }
 
     // create portfolios
@@ -149,7 +164,7 @@ export const idlePlayerToPlayerGame = async (
       challengerBalance: null,
       gameMode: body.gameMode,
       leauge: body.leauge,
-      type: "days",
+      type: 'days',
       remainingCamparisons: 7,
       status: GameStatus.Pending,
     });
@@ -164,7 +179,7 @@ export const idlePlayerToPlayerGame = async (
       // @ts-ignore
       game.rival = populateRival;
     }
-    await Game.populate(game, { path: "challenger" });
+    await Game.populate(game, { path: 'challenger' });
     return game.save();
   }
 };

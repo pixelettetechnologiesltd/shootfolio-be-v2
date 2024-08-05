@@ -1,23 +1,23 @@
-import Stripe from "stripe";
-import config from "../../config/config";
-import { UserDoc } from "../User/entity/user.interface";
+import Stripe from 'stripe';
+import config from '../../config/config';
+import { UserDoc } from '../User/entity/user.interface';
 import {
   SubscriptionAttrs,
   SubscriptionDoc,
-} from "./entity/subscription.interface";
-import Subscription from "./entity/Subscription.Model";
-import { BadRequestError } from "../../errors/badRequest.error";
+} from './entity/subscription.interface';
+import Subscription from './entity/Subscription.Model';
+import { BadRequestError } from '../../errors/badRequest.error';
 import {
   Options,
   PaginationResult,
-} from "../../common/interfaces/paginates.interface";
-import mongoose from "mongoose";
-import Card from "../Card/entity/creditCard.Model";
-import User from "../User/entity/User.model";
-import { Logger } from "../../config/logger";
-import { Request } from "express";
+} from '../../common/interfaces/paginates.interface';
+import mongoose from 'mongoose';
+import Card from '../Card/entity/creditCard.Model';
+import User from '../User/entity/User.model';
+import { Logger } from '../../config/logger';
+import { Request } from 'express';
 const client = new Stripe(config.stripe.key, {
-  apiVersion: "2022-11-15",
+  apiVersion: '2022-11-15',
 });
 
 class SubscriptionService {
@@ -25,7 +25,7 @@ class SubscriptionService {
 
   public async create(body: SubscriptionAttrs): Promise<SubscriptionDoc> {
     if (await Subscription.isSubscriptionNameTaken(body.name)) {
-      throw new BadRequestError("Subscription name already exists");
+      throw new BadRequestError('Subscription name already exists');
     }
 
     try {
@@ -47,9 +47,9 @@ class SubscriptionService {
 
       // create price on stripe
       const price = await client.prices.create({
-        currency: "usd",
+        currency: 'usd',
         unit_amount: body.amount,
-        recurring: { interval: "month" },
+        recurring: { interval: 'month' },
         product: product.id,
       });
 
@@ -66,7 +66,7 @@ class SubscriptionService {
       if (error instanceof Error) {
         throw new BadRequestError(error.message);
       } else {
-        throw new BadRequestError("Something went wrong");
+        throw new BadRequestError('Something went wrong');
       }
     }
   }
@@ -77,11 +77,11 @@ class SubscriptionService {
   ): Promise<UserDoc> {
     const subscription = await this.getSubscription(subscriptionId);
     if (!subscription) {
-      throw new BadRequestError("Subscription not found");
+      throw new BadRequestError('Subscription not found');
     }
     const customer = await Card.findOne({ user: user.id });
     if (!customer) {
-      throw new BadRequestError("You dont have any cards yet, add card first");
+      throw new BadRequestError('You dont have any cards yet, add card first');
     }
     const stripeSUbscription = await client.subscriptions.create({
       customer: customer.customer_id,
@@ -95,7 +95,7 @@ class SubscriptionService {
       { $set: { subscription: subscription._id, subId: stripeSUbscription.id } }
     );
     // @ts-ignore
-    return await User.findById(user.id).populate("subscription");
+    return await User.findById(user.id).populate('subscription');
   }
 
   /**
@@ -113,7 +113,7 @@ class SubscriptionService {
     }
     const subscription = await this.getSubscription(subscriptionId);
     if (!subscription) {
-      throw new BadRequestError("No subscription found!");
+      throw new BadRequestError('No subscription found!');
     }
     const card = await Card.findOne({ user: user.id });
     if (!card?.subscription_id) {
@@ -125,13 +125,13 @@ class SubscriptionService {
       const oldSubscription = await client.subscriptions.retrieve(user.subId);
       if (oldSubscription.id === card.subscription_id) {
         throw new Error(
-          "You already subscribed to this subscription, please upgrade"
+          'You already subscribed to this subscription, please upgrade'
         );
       }
       const customer = await Card.findOne({ user: user.id });
       if (!customer) {
         throw new BadRequestError(
-          "You dont have any cards yet, add card first"
+          'You dont have any cards yet, add card first'
         );
       }
 
@@ -158,11 +158,11 @@ class SubscriptionService {
     } catch (error) {
       Logger.error(error);
       if (error instanceof Error) throw new BadRequestError(error.message);
-      throw new BadRequestError("Something went wrong");
+      throw new BadRequestError('Something went wrong');
     }
     await subscription.save();
     // @ts-ignore
-    return await User.findById(user.id).populate("subscription");
+    return await User.findById(user.id).populate('subscription');
   }
 
   /**
@@ -190,7 +190,7 @@ class SubscriptionService {
     } catch (error) {
       Logger.error(error);
       if (error instanceof Error) throw new BadRequestError(error.message);
-      throw new BadRequestError("Something went wrong");
+      throw new BadRequestError('Something went wrong');
     }
     // @ts-ignore
     return await user;
@@ -230,7 +230,7 @@ class SubscriptionService {
   ) {
     const subscription = await this.getSubscription(id);
     if (!subscription) {
-      throw new BadRequestError("No subscription found!");
+      throw new BadRequestError('No subscription found!');
     }
 
     Object.assign(subscription, body);
@@ -243,19 +243,20 @@ class SubscriptionService {
    * @param id
    * @returns {Promise<{success: boolean}>}
    */
-  public async deleteSubscription(id: string) {
+  public async deleteSubscription(id: string): Promise<{ success: boolean }> {
     const subscription = await this.getSubscription(id);
     if (!subscription) {
-      throw new BadRequestError("No subscription found!");
+      throw new BadRequestError('No subscription found!');
     }
 
-    await subscription.remove();
     await client.subscriptions.del(subscription.id);
+    await subscription.remove();
+    await subscription.save();
     return { success: true };
   }
 
   public async handleFailedPayments(req: Request) {
-    const sig = req.headers["stripe-signature"];
+    const sig = req.headers['stripe-signature'];
     let event: Stripe.Event;
 
     try {
@@ -266,7 +267,7 @@ class SubscriptionService {
           config.stripe.webHookKey
         );
         switch (event.type) {
-          case "invoice.payment_failed":
+          case 'invoice.payment_failed':
             const invoice = event.data.object as Stripe.Invoice;
             const subscriptionId = invoice.subscription;
 
@@ -287,7 +288,7 @@ class SubscriptionService {
       }
     } catch (err) {
       console.error(err);
-      throw new Error("Internal server error");
+      throw new Error('Internal server error');
     }
   }
 }

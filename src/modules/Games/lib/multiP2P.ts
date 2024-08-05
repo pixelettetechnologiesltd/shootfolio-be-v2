@@ -1,16 +1,19 @@
-import mongoose from "mongoose";
-import { BadRequestError } from "../../../errors/badRequest.error";
-import CryptoCoins from "../../CryptoCoins/entity/model";
-import GameLeague from "../../GameLeagues/entity/model";
-import { GameModeDoc } from "../../GameModes/entity/interface";
-import { UserDoc } from "../../User/entity/user.interface";
-import { GameAttrs, GameStatus, PlayerRoles } from "../entity/interface";
-import PortfolioService from "../../Portfolio/Service";
-import { PlayerType } from "../../Portfolio/entity/interface";
-import Game from "../entity/model";
-import User from "../../User/entity/User.model";
-import Admin from "../../Admin/entity/Admin.model";
-import { multiPlayerToPlayerGameScheduler } from "../../../bull/multiP2p";
+import mongoose from 'mongoose';
+import { BadRequestError } from '../../../errors/badRequest.error';
+import CryptoCoins from '../../CryptoCoins/entity/model';
+import GameLeague from '../../GameLeagues/entity/model';
+import { GameModeDoc } from '../../GameModes/entity/interface';
+import { UserDoc } from '../../User/entity/user.interface';
+import { GameAttrs, GameStatus, PlayerRoles } from '../entity/interface';
+import PortfolioService from '../../Portfolio/Service';
+import { PlayerType } from '../../Portfolio/entity/interface';
+import Game from '../entity/model';
+import User from '../../User/entity/User.model';
+import Admin from '../../Admin/entity/Admin.model';
+import { multiPlayerToPlayerGameScheduler } from '../../../bull/multiP2p';
+import GameMode from '../../GameModes/entity/model';
+import { scheduleGameOver } from './utils/scheduleGameOver';
+import { scheduleGameComparison } from './utils/comparisonProcessor';
 
 export const multiPlayerToPlayerGame = async (
   body: GameAttrs,
@@ -18,31 +21,35 @@ export const multiPlayerToPlayerGame = async (
   gameMode: GameModeDoc
 ) => {
   if (body.portfolios.length !== 1) {
-    throw new BadRequestError("Select only one asset");
+    throw new BadRequestError('Select only one asset');
   }
   const leauge = await GameLeague.findById(body.leauge);
   if (!leauge) {
-    throw new BadRequestError("Leauge not found");
+    throw new BadRequestError('Leauge not found');
   }
   if (body.gameId) {
     let decider;
 
     const game = await Game.findById(body.gameId);
     if (!game) {
-      throw new BadRequestError("No game found!");
+      throw new BadRequestError('No game found!');
     }
     if (game.status === GameStatus.Over) {
-      throw new BadRequestError("This game is over");
+      throw new BadRequestError('This game is over');
     }
 
-    if (game.rivalClub.toString() === body.club.toString()) {
-      decider = "rival";
+    if (
+      game.rivalClub.toString() === body.club.toString() ||
+      game.rivalClub?._id.toString() === body.club.toString()
+    ) {
+      decider = 'rival';
     } else {
-      decider = "challenger";
+      decider = 'challenger';
     }
-    if (decider === "challenger") {
+
+    if (decider === 'challenger') {
       if (game.challengerProtfolios.length === 5) {
-        throw new BadRequestError("Team is already full");
+        throw new BadRequestError('Team is already full');
       }
       if (
         game.challengerProtfolios.some(
@@ -52,7 +59,7 @@ export const multiPlayerToPlayerGame = async (
         )
       ) {
         throw new BadRequestError(
-          "Asset already taken, please select a different one!"
+          'Asset already taken, please select a different one!'
         );
       }
 
@@ -61,18 +68,18 @@ export const multiPlayerToPlayerGame = async (
           (e) => e.role === body.portfolios[0].role
         )
       ) {
-        throw new BadRequestError("This role has been taken!");
+        throw new BadRequestError('This role has been taken!');
       }
 
       const coin = await CryptoCoins.findById(body.portfolios[0].portfolio);
-      if (!coin) throw new BadRequestError("Asset not found");
+      if (!coin) throw new BadRequestError('Asset not found');
 
       if (
         coin.quote.USD.price * body.portfolios[0].quantity >
         // @ts-ignore
         leauge.investableBudget / 5
       ) {
-        throw new BadRequestError("Your balance is insufficient");
+        throw new BadRequestError('Your balance is insufficient');
       }
 
       const portfolio = await PortfolioService.create({
@@ -97,10 +104,10 @@ export const multiPlayerToPlayerGame = async (
       });
       if (!game.challenger) game.challenger = user.id;
       // @ts-ignore
-      if (!game.challengerClub) game.challengerClub = body.challengerClub;
+      if (!game.challengerClub) game.challengerClub = body.club;
     } else {
       if (game.rivalProtfolios.length === 5) {
-        throw new BadRequestError("Team is already full");
+        throw new BadRequestError('Team is already full');
       }
       if (
         game.rivalProtfolios.some(
@@ -110,25 +117,25 @@ export const multiPlayerToPlayerGame = async (
         )
       ) {
         throw new BadRequestError(
-          "Asset already taken, please select a different one!"
+          'Asset already taken, please select a different one!'
         );
       }
 
       if (
         game.rivalProtfolios.some((e) => e.role === body.portfolios[0].role)
       ) {
-        throw new BadRequestError("This role has been taken!");
+        throw new BadRequestError('This role has been taken!');
       }
 
       const coin = await CryptoCoins.findById(body.portfolios[0].portfolio);
-      if (!coin) throw new BadRequestError("Asset not found");
+      if (!coin) throw new BadRequestError('Asset not found');
 
       if (
         coin.quote.USD.price * body.portfolios[0].quantity >
         // @ts-ignore
         leauge.investableBudget / 5
       ) {
-        throw new BadRequestError("Your balance is insufficient");
+        throw new BadRequestError('Your balance is insufficient');
       }
 
       const portfolio = await PortfolioService.create({
@@ -151,15 +158,15 @@ export const multiPlayerToPlayerGame = async (
         role: body.portfolios[0].role,
         ball: false,
       });
-      if (!game.challenger) game.challenger = user.id;
+      if (!game.rival) game.rival = user.id;
       // @ts-ignore
-      if (!game.challengerClub) game.challengerClub = body.club;
+      if (!game.rivalClub) game.rivalClub = body.club;
     }
 
-    await Game.populate(game, { path: "challengerProtfolios.portfolio" });
-    await Game.populate(game, { path: "challengerProtfolios.portfolio.user" });
-    await Game.populate(game, { path: "rivalProtfolios.portfolio" });
-    await Game.populate(game, { path: "rivalProtfolios.portfolio.user" });
+    await Game.populate(game, { path: 'challengerProtfolios.portfolio' });
+    await Game.populate(game, { path: 'challengerProtfolios.portfolio.user' });
+    await Game.populate(game, { path: 'rivalProtfolios.portfolio' });
+    await Game.populate(game, { path: 'rivalProtfolios.portfolio.user' });
     // await Game.populate(game, { path: "rival" });
     let populateRival;
     populateRival = await User.findById(game.rival);
@@ -167,7 +174,7 @@ export const multiPlayerToPlayerGame = async (
       // @ts-ignore
       game.rival = populateRival;
     }
-    await Game.populate(game, { path: "challenger" });
+    await Game.populate(game, { path: 'challenger' });
     // realTimePlayerToPlayerGameScheduler(game.id);
     if (
       game.rivalProtfolios.length === 5 &&
@@ -198,17 +205,29 @@ export const multiPlayerToPlayerGame = async (
         );
         game.rivalProtfolios[index].ball = true;
       }
+      const Gamemode = await GameMode.findById(game.gameMode);
+      console.log('game====', GameMode);
+
+      // if (Gamemode) {
+      //   console.log('game====if', GameMode);
+
+      //   const duration = 90 * 60 * 1000;
+      //   await scheduleGameOver(game._id, duration);
+      //   await scheduleGameComparison(game._id, Gamemode.duration);
+      // }
+
+      //S211
       multiPlayerToPlayerGameScheduler(game.id);
     }
     return await game.save();
   } else {
     const coin = await CryptoCoins.findById(body.portfolios[0].portfolio);
-    if (!coin) throw new BadRequestError("Asset not found");
+    if (!coin) throw new BadRequestError('Asset not found');
     if (
       coin.quote.USD.price * body.portfolios[0].quantity >
       leauge.investableBudget / 5
     ) {
-      throw new BadRequestError("Your balance is insufficient");
+      throw new BadRequestError('Your balance is insufficient');
     }
     const portfolio = await PortfolioService.create({
       user: user.id,
@@ -248,7 +267,7 @@ export const multiPlayerToPlayerGame = async (
       challengerBalance: null,
       gameMode: body.gameMode,
       leauge: body.leauge,
-      type: "minutes",
+      type: 'minutes',
       remainingCamparisons: 18,
       status: GameStatus.Pending,
     });
@@ -263,8 +282,8 @@ export const multiPlayerToPlayerGame = async (
       // @ts-ignore
       game.rival = populateRival;
     }
-    await Game.populate(game, { path: "challenger" });
-    await Game.populate(game, { path: "rivalProtfolios.user" });
+    await Game.populate(game, { path: 'challenger' });
+    await Game.populate(game, { path: 'rivalProtfolios.user' });
     return game.save();
   }
 };

@@ -47,10 +47,11 @@ class Service {
 
   public async getCompeteClubs(options: Options) {
     const portfolios = await Portfolio.find({ playerType: PlayerType.Bot });
-    const ids = [...new Set(portfolios.map((e) => e.club._id))];
+    const ids = [...new Set(portfolios.map((e) => e.club?._id))];
     const filter = { _id: { $in: ids } };
     return await this.query(filter, options);
   }
+
   /**
    *
    * @param id

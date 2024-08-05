@@ -1,11 +1,11 @@
-import { QuizAttrs, QuizDoc, QuizModal } from "./entity/interface";
-import Quiz from "./entity/modal";
-import { BadRequestError } from "../../errors/badRequest.error";
-import { Options, PaginationResult } from "../../common/interfaces";
-import Result from "../Result/entity/modal";
-import { ResultDoc } from "../Result/entity/interface";
-import fs from "fs";
-import csvParser from "csv-parser";
+import { QuizAttrs, QuizDoc, QuizModal } from './entity/interface';
+import Quiz from './entity/modal';
+import { BadRequestError } from '../../errors/badRequest.error';
+import { Options, PaginationResult } from '../../common/interfaces';
+import Result from '../Result/entity/modal';
+import { ResultDoc } from '../Result/entity/interface';
+import fs from 'fs';
+import csvParser from 'csv-parser';
 
 class Service {
   constructor() {}
@@ -43,7 +43,7 @@ class Service {
   public async get(id: string): Promise<QuizDoc> {
     const doc = await Quiz.findById(id);
     if (!doc) {
-      throw new BadRequestError("Quiz not found");
+      throw new BadRequestError('Quiz not found');
     }
     return doc;
   }
@@ -61,22 +61,22 @@ class Service {
     const question = await Quiz.findOne({ _id: body.questionId });
 
     if (!question) {
-      throw new BadRequestError("Quiz not found");
+      throw new BadRequestError('Quiz not found');
     }
     if (question.correctOption !== body.answer) {
-      return { message: "Fail, please try again" };
+      return { message: 'Fail, please try again' };
     }
     const result = await Result.findOneAndUpdate(
       {
         user: loggedUser.id,
         quiz: question.id,
-        status: "pass",
+        status: 'pass',
       },
       {
         $set: {
           user: loggedUser.id,
           quiz: question.id,
-          status: "pass",
+          status: 'pass',
         },
       },
       { new: true, upsert: true }
@@ -87,7 +87,7 @@ class Service {
   public async randomQuestion() {
     const question = await Quiz.find();
     if (!question.length) {
-      throw new BadRequestError("No quiz found");
+      throw new BadRequestError('No quiz found');
     }
     const randomQuestion = Math.floor(Math.random() * question.length);
     return question[randomQuestion];
@@ -99,9 +99,9 @@ class Service {
     return new Promise((resolve, reject) => {
       fs.createReadStream(csvFilePath)
         .pipe(csvParser())
-        .on("data", (row) => {
+        .on('data', (row) => {
           const { question, options, correctOption } = row;
-          const optionsArray = options.split(",");
+          const optionsArray = options.split(',');
           const newQuestion: QuizDoc = new Quiz({
             question,
             options: optionsArray,
@@ -109,13 +109,37 @@ class Service {
           });
           questions.push(newQuestion);
         })
-        .on("end", () => {
+        .on('end', () => {
           resolve(questions);
         })
-        .on("error", (err) => {
+        .on('error', (err) => {
           reject(err);
         });
     });
+  }
+
+  /**
+   *
+   * @param id
+   * @param updateBody
+   * @returns { Promise<GameClubDoc>}
+   */
+  public async update(id: string, updateBody: QuizAttrs): Promise<QuizAttrs> {
+    const doc = await this.get(id);
+    Object.assign(doc, updateBody);
+    await doc.save();
+    return doc;
+  }
+
+  /**
+   *
+   * @param id
+   * @returns {Promise<message: string>}
+   */
+  public async delete(id: string): Promise<{ message: string }> {
+    const doc = await this.get(id);
+    await doc.remove();
+    return { message: 'Quiz deleted successfully' };
   }
 }
 

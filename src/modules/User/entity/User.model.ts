@@ -47,7 +47,8 @@ const userSchema = new mongoose.Schema(
     },
     status: {
       type: String,
-      default: null,
+      enums: ['pending', 'active', 'inactive'],
+      default: 'pending',
     },
     subscription: {
       type: mongoose.Types.ObjectId,

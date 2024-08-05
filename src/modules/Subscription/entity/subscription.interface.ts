@@ -1,13 +1,13 @@
-import mongoose from "mongoose";
-import { PaginationResult } from "../../../common/interfaces";
-import { Options } from "../../../common/interfaces/paginates.interface";
-import { GameLeagueDoc } from "../../GameLeagues/entity/interface";
+import mongoose from 'mongoose';
+import { PaginationResult } from '../../../common/interfaces';
+import { Options } from '../../../common/interfaces/paginates.interface';
+import { GameLeagueDoc } from '../../GameLeagues/entity/interface';
 
 export enum SubscriptionTypes {
-  SILVER = "Silver",
-  GOLD = "Gold",
-  PLATINIUM = "Platinum",
-  FREE = "Free",
+  SILVER = 'Silver',
+  GOLD = 'Gold',
+  PLATINIUM = 'Platinum',
+  FREE = 'Free',
 }
 export interface SubscriptionAttrs {
   name: SubscriptionTypes;
@@ -21,6 +21,7 @@ export interface SubscriptionDoc extends mongoose.Document {
   amount: number;
   priceId: string;
   productId: string;
+  status: boolean;
 }
 
 export interface SubscriptionModel extends mongoose.Model<SubscriptionDoc> {

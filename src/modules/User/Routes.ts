@@ -72,7 +72,7 @@ router
   .route('/status/:id')
   .patch(
     auth('manageUsers'),
-    Validate(userValidation.updateUser()),
+    Validate(userValidation.updateUserStatus()),
     userController.updateStatus
   );
 
@@ -116,4 +116,10 @@ router
     Validate(userValidation.updateSubscription()),
     AsyncHandler(userController.updateSubscription)
   );
+
+router.get(
+  '/statistics',
+  auth(),
+  AsyncHandler(userController.getUserStatistics)
+);
 export { router as userRoute };

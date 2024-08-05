@@ -21,12 +21,14 @@ class BorrowMoney {
         body.portfolio,
         PortfolioSelect.RivalPortfolio
       );
-
+      console.log("A0191", game.rivalProtfolios[index].user?.id.toString());
+      console.log("A0191", user.id.toString());
       if (
         game.rivalProtfolios[index].user?.id.toString() !== user.id.toString()
       ) {
-        throw new BadRequestError("Unable to borrow money");
+        throw new BadRequestError("Unable to borrow USD");
       }
+
       const totalAmount =
         game.rivalProtfolios[index].borrowAmount + body.amount;
       if (totalAmount > game.leauge.borrowAmount) {
@@ -57,7 +59,7 @@ class BorrowMoney {
         game: game.id,
         user: user.id,
         player: PlayerTeam.Challenger,
-        text: `${user.name} has borrowed ${body.amount} money`,
+        text: `${user.name} has borrowed ${body.amount} USD`,
       });
     }
     await game.save();
@@ -84,7 +86,7 @@ class BorrowMoney {
       game: game.id,
       user: user.id,
       player: PlayerTeam.Challenger,
-      text: `${user.name} has borrowed ${body.amount} money`,
+      text: `${user.name} has borrowed ${body.amount} USD`,
     });
     await game.save();
   }
@@ -111,7 +113,7 @@ class BorrowMoney {
         game: game.id,
         user: user.id,
         player: PlayerTeam.Challenger,
-        text: `${user.name} has borrowed ${body.amount} money`,
+        text: `${user.name} has borrowed ${body.amount} USD`,
       });
     } else {
       const index = findPortfolio(
@@ -130,7 +132,7 @@ class BorrowMoney {
         game: game.id,
         user: user.id,
         player: PlayerTeam.Challenger,
-        text: `${user.name} has borrowed ${body.amount} money`,
+        text: `${user.name} has borrowed ${body.amount} USD`,
       });
     }
 

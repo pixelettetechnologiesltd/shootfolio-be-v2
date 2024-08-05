@@ -68,6 +68,43 @@ class Controller {
       res.status(500).json({ error: 'Internal server error.' });
     }
   }
+
+  /**
+   * 
+   * @param req 
+   * @param res 
+    @Route {Get GameClub By ID}
+   */
+  public async get(req: Request, res: Response) {
+    const { id } = req.params;
+    const response = await Service.get(id);
+    return res.status(200).send(response);
+  }
+
+  /**
+   * 
+   * @param req 
+   * @param res 
+    @Route {Get GameClub By ID}
+   */
+  public async update(req: Request, res: Response) {
+    const { id } = req.params;
+    const { body } = req;
+    const doc = await Service.update(id, body);
+    return res.status(200).send(doc);
+  }
+
+  /**
+   * 
+   * @param req 
+   * @param res 
+    @Route {Get GameClub By ID}
+   */
+  public async delete(req: Request, res: Response) {
+    const { id } = req.params;
+    const response = await Service.delete(id);
+    return res.status(200).send(response);
+  }
 }
 
 export default new Controller();

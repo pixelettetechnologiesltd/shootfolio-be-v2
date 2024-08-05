@@ -13,16 +13,20 @@ export const tacke = async function (
   }
   let rivalBalance = 0;
   let challengerBalance = 0;
+
   for (let i = 0; i < game.rivalProtfolios.length; i++) {
-    rivalBalance +=
-      game.rivalProtfolios[i].portfolio.coin.quote.USD.price *
-      game.rivalProtfolios[i].quantity;
+    rivalBalance +=  ( game.rivalProtfolios[i].portfolio.coin.quote.USD.price * game.rivalProtfolios[i].quantity);
+    rivalBalance += game.rivalProtfolios[i].balance;
+    rivalBalance -= game.rivalProtfolios[i].borrowAmount;
+    rivalBalance += game.rivalProtfolios[i].returnAmount;
   }
   for (let i = 0; i < game.challengerProtfolios.length; i++) {
-    challengerBalance +=
-      game.challengerProtfolios[i].portfolio.coin.quote.USD.price *
-      game.challengerProtfolios[i].quantity;
+    challengerBalance += (game.challengerProtfolios[i].portfolio.coin.quote.USD.price * game.challengerProtfolios[i].quantity);
+    challengerBalance += game.challengerProtfolios[i].balance;
+    challengerBalance -= game.challengerProtfolios[i].borrowAmount;
+      challengerBalance += game.challengerProtfolios[i].returnAmount;
   }
+
   if (body.player === "rival") {
     const index = game.rivalProtfolios.findIndex(
       (e) => e.user?.id.toString() === user.id.toString()
@@ -55,7 +59,7 @@ export const tacke = async function (
       game: game.id,
       user: user.id,
       player: PlayerTeam.Rival,
-      text: `${user.name} has tickle the player and got the ball`,
+      text: `${user.name} has tackled the player and got the ball`,
     });
   } else {
     const index = game.challengerProtfolios.findIndex(
@@ -68,7 +72,7 @@ export const tacke = async function (
     if (game.challengerProtfolios[index].role === PlayerRoles.GK) {
       throw new BadRequestError("Goalkeeper can't tackle");
     }
-    console.log(challengerBalance, rivalBalance);
+    console.log("ADSSA",challengerBalance, rivalBalance);
 
     if (challengerBalance < rivalBalance) {
       throw new BadRequestError("You can't tackle, weak profile!");
@@ -89,7 +93,7 @@ export const tacke = async function (
       game: game.id,
       user: user.id,
       player: PlayerTeam.Challenger,
-      text: `${user.name} has tickle the player and got the ball`,
+      text: `${user.name} has tackled the player and got the ball`,
     });
   }
   return await game.save();

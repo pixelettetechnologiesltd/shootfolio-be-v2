@@ -1,7 +1,8 @@
-import { Logger } from "../config/logger";
-import { GameModes, GameStatus } from "../modules/Games/entity/interface";
-import { gameAnalyticsQueue } from "./conf";
-import GameService from "../modules/Games/Service";
+import { Logger } from '../config/logger';
+import { GameModes, GameStatus } from '../modules/Games/entity/interface';
+import { gameAnalyticsQueue } from './conf';
+import GameService from '../modules/Games/Service';
+import { calculatePortfolio } from '../modules/Games/lib/utils';
 
 export async function idelPlayerToMachineGameScheduler(gameId: string) {
   try {
@@ -33,69 +34,35 @@ export async function idelPlayerToMachineGameScheduler(gameId: string) {
 }
 
 export async function gameProcessor(gameId: string) {
-  const game = await GameService.get(gameId);
-  if (!game) {
-    Logger.error("Game not found or over");
+  try {
+    const game = await GameService.get(gameId);
+    if (!game) {
+      Logger.error('Game not found or over');
+      return;
+    }
+
+    if (game.remainingCamparisons === 0) {
+      Logger.info('Game has finished');
+      return;
+    }
+
+    // calculate goals
+    calculatePortfolio(game);
+    // game.remainingCamparisons -= 1;
+    if (game.remainingCamparisons === 0) {
+      Logger.info('Game finished');
+      if (game.challengerBalance > game.rivalBalance) {
+        game.winner = game.challenger?.id;
+      } else {
+        // @ts-ignore
+        game.winner = game.rival.id;
+      }
+      game.status = GameStatus.Over;
+    }
+    await game.save();
+
     return;
+  } catch (error) {
+    console.log(error);
   }
-
-  if (game.remainingCamparisons === 0) {
-    Logger.info("Game has finished");
-    return;
-  }
-
-  // calculate goals
-  let rivalBalance = 0;
-  let challengerBalance = 0;
-
-  for (let i = 0; i < game.rivalProtfolios.length; i++) {
-    if (
-      game.rivalProtfolios[i].portfolio.coin.quote.USD.price > 0 &&
-      game.rivalProtfolios[i].portfolio.coin.quote.USD.price < 1
-    ) {
-      rivalBalance += Array(game.rivalProtfolios[i].quantity)
-        .fill(game.rivalProtfolios[i].portfolio.coin.quote.USD.price)
-        .reduce((a: number, c: number) => a + c, 0);
-    } else {
-      rivalBalance +=
-        game.rivalProtfolios[i].portfolio.coin.quote.USD.price *
-        game.rivalProtfolios[i].quantity;
-    }
-  }
-  for (let i = 0; i < game.challengerProtfolios.length; i++) {
-    if (
-      game.challengerProtfolios[i].portfolio.coin.quote.USD.price > 0 &&
-      game.challengerProtfolios[i].portfolio.coin.quote.USD.price < 1
-    ) {
-      challengerBalance += Array(game.challengerProtfolios[i].quantity)
-        .fill(game.challengerProtfolios[i].portfolio.coin.quote.USD.price)
-        .reduce((a: number, c: number) => a + c, 0);
-    } else {
-      challengerBalance +=
-        game.challengerProtfolios[i].portfolio.coin.quote.USD.price *
-        game.challengerProtfolios[i].quantity;
-    }
-  }
-  console.log("Challenger Balanc => ", challengerBalance);
-  console.log("rivalBalance Balanc => ", rivalBalance);
-
-  if (challengerBalance > rivalBalance) {
-    game.challengerGoals += 1;
-  } else {
-    game.rivalGoals += 1;
-  }
-  game.remainingCamparisons -= 1;
-  if (game.remainingCamparisons === 0) {
-    Logger.info("Game finished");
-    if (challengerBalance > rivalBalance) {
-      game.winner = game.challenger.id;
-    } else {
-      // @ts-ignore
-      game.winner = game.rival.id;
-    }
-    game.status = GameStatus.Over;
-  }
-  await game.save();
-
-  return;
 }

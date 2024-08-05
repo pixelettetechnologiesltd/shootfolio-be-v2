@@ -27,6 +27,7 @@ import { quizRoutes } from '../modules/Quiz/Routes';
 import { gameHistoryRoutes } from '../modules/GameHistory/Routes';
 import { updateCoins } from '../common/cron-jobs/update-coins-jobs';
 import { cryptoPaymentRoute } from '../modules/CryptoPayment/Routes';
+import { leaderboardRoutes } from '../modules/Leaderboard/Routes';
 
 class App {
   public app: express.Application;
@@ -96,6 +97,7 @@ class App {
     this.app.use('/v1/api/quiz', quizRoutes);
     this.app.use('/v1/api/analytics', gameHistoryRoutes);
     this.app.use('/v1/api/cryptopayment', cryptoPaymentRoute);
+    this.app.use('/v1/api/leaderboard', leaderboardRoutes);
     this.app.get('/', (req: Request, res: Response) => {
       res.send({ msg: 'Welcome to Shootfolio!!' });
     });

@@ -25,7 +25,7 @@ router
     AsyncHandler(Controller.answerSubmit)
   );
 
-router.route('/random').get(auth(), AsyncHandler(Controller.randomQuestion));
+router.get('/random', auth(), AsyncHandler(Controller.randomQuestion));
 router
   .route('/uploadcsv')
   .post(
@@ -40,5 +40,11 @@ router
 //   Validate(Validation.delete()),
 //   AsyncHandler(Controller.delete)
 // );
+
+router
+  .route('/:id')
+  .get(Validate(Validation.get()), AsyncHandler(Controller.get))
+  .patch(Validate(Validation.update()), AsyncHandler(Controller.update))
+  .delete(Validate(Validation.delete()), AsyncHandler(Controller.delete));
 
 export { router as quizRoutes };
