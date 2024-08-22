@@ -74,6 +74,9 @@ class UserService {
     }
 
     if (!user.isVerified) {
+
+      const verificationLink = `${config.nodeMailer.verificationLink}/${user.verificationToken}`;
+      sendVerificationEmail(user.email, verificationLink);
       throw new BadRequestError('Check your email to verify your account');
     }
     return user;

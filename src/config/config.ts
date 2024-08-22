@@ -35,6 +35,11 @@ const envVarsSchema = Joi.object()
     NODE_MAILER_EMAIL: Joi.string().required(),
     NODE_MAILER_PASSWORD: Joi.string().required(),
     EMAIL_VERIFICATION_LINK: Joi.string().required(),
+
+    SMTP_PORT: Joi.string().required(),
+    SMTP_HOST: Joi.string().required(),
+    SMTP_SECURE: Joi.string(),
+
     STRIPE_WEBHOOK_KEY: Joi.string(),
     ACCESS_KEY: Joi.string(),
     SECRET_KEY: Joi.string(),
@@ -83,6 +88,9 @@ const config = {
     webHookKey: envVars.STRIPE_WEBHOOK_KEY,
   },
   nodeMailer: {
+    smtpHost: envVars.SMTP_HOST,
+    smtpPort: envVars.SMTP_PORT,
+    secure: envVars.SMTP_SECURE,
     email: envVars.NODE_MAILER_EMAIL,
     password: envVars.NODE_MAILER_PASSWORD,
     verificationLink: envVars.EMAIL_VERIFICATION_LINK,

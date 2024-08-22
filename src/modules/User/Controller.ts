@@ -205,9 +205,14 @@ class UserController {
   }
 
   public async verifyEmail(req: Request, res: Response) {
-    const { token } = req.params;
-    const user = await userService.verifyEmail(token);
-    res.status(200).json({ user, message: 'Email verified successfully' });
+    try {
+        const { token } = req.params;
+        const user = await userService.verifyEmail(token);
+        res.redirect('http://localhost:3000/#/verification');
+        
+    } catch (error) {
+        res.status(400).json({ message: 'Email verification failed', error: error });
+    }
   }
 
   public async updateSubscription(req: Request, res: Response) {
