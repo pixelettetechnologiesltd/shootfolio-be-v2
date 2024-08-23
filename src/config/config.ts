@@ -32,6 +32,7 @@ const envVarsSchema = Joi.object()
       .required()
       .description('Crypto Market API URL Latest is required'),
     STRIPE_KEY: Joi.string().required().description('Stripe key is required'),
+
     NODE_MAILER_EMAIL: Joi.string().required(),
     NODE_MAILER_PASSWORD: Joi.string().required(),
     EMAIL_VERIFICATION_LINK: Joi.string().required(),
@@ -90,7 +91,6 @@ const config = {
   nodeMailer: {
     smtpHost: envVars.SMTP_HOST,
     smtpPort: envVars.SMTP_PORT,
-    secure: envVars.SMTP_SECURE,
     email: envVars.NODE_MAILER_EMAIL,
     password: envVars.NODE_MAILER_PASSWORD,
     verificationLink: envVars.EMAIL_VERIFICATION_LINK,

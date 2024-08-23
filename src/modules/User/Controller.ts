@@ -208,7 +208,7 @@ class UserController {
     try {
         const { token } = req.params;
         const user = await userService.verifyEmail(token);
-        res.redirect('http://localhost:3000/#/verification');
+        res.redirect('https://shootfolio-user-j48qe.ondigitalocean.app/#/verification');
         
     } catch (error) {
         res.status(400).json({ message: 'Email verification failed', error: error });
